@@ -21,3 +21,7 @@ output "RDS_Username" {
 output "S3_Website_Endpoint" {
     value = module.s3.s3_website_endpoint
 }
+
+output "Repository_URLs" {
+    value = module.ecr.respository_urls
+}

@@ -47,3 +47,7 @@ variable "env_name" {
   description = "Used for resource naming (e.g., staging or prod)"
 }
 
+variable "service_names" {
+    type = list(string)
+    description = "List of service names"
+}

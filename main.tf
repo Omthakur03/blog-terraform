@@ -40,3 +40,11 @@ module "ec2" {
   blog_vpc_id      = var.is_prod ? module.vpc[0].vpc_id : ""
   public_subnet_id = var.is_prod ? module.vpc[0].public_subnet_1_id : ""
 }
+
+module "ecr" {
+  source       = "./modules/ecr"
+  project_name = var.project_name
+  env_name     = var.env_name
+  
+  service_names = var.service_names
+}
