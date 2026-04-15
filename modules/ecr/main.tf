@@ -4,6 +4,8 @@ resource "aws_ecr_repository" "microservices" {
     name = "${var.project_name}-${var.env_name}-${each.value}-repo"
     image_tag_mutability = "MUTABLE"
 
+    force_delete         = true
+
     image_scanning_configuration {
         scan_on_push = true
     }

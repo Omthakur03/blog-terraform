@@ -17,3 +17,7 @@ variable "s3_website_endpoint" {
     description = "S3 Website Endpoint"
     type = string
 }
+
+variable "zone_id" {
+    type = string
+}

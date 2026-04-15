@@ -1,3 +1,9 @@
+# Fetch existing Route 53 Zone
+data "aws_route53_zone" "main" {
+  name         = "mzsk.fun"
+  private_zone = false
+}
+
 module "vpc" {
   source       = "./modules/vpc"
   count = var.is_prod ? 1 : 0
@@ -19,6 +25,7 @@ module "cdn" {
   providers           = { aws = aws.virginia }
   project_name        = "${var.project_name}-${var.env_name}"
   domain_name         = var.domain_name
+  zone_id      = data.aws_route53_zone.main.zone_id
   certificate_domain_name = var.certificate_domain_name
   s3_website_endpoint = module.s3.s3_website_endpoint
 }
@@ -59,11 +66,6 @@ module "eks" {
   public_subnet_ids = [module.vpc[0].public_subnet_1_id]
 }
 
-# Fetch existing Route 53 Zone
-data "aws_route53_zone" "main" {
-  name         = "mzsk.fun"
-  private_zone = false
-}
 
 module "acm" {
   source       = "./modules/acm"

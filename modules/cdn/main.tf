@@ -58,9 +58,27 @@ resource "aws_cloudfront_distribution" "blog_distribution" {
       restriction_type = "none"
     }
   }
+
+  wait_for_deployment = true
   
   tags = {
     Name = "${var.project_name}-cloudfront"
+  }
+}
+
+resource "aws_route53_record" "cloudfront_alias" {
+  zone_id = var.zone_id
+  name    = "blog.mzsk.fun"
+  type    = "CNAME"
+  ttl = 60
+
+  # Add this line to overwrite the old record automatically
+  allow_overwrite = true 
+
+  alias {
+    name                   = aws_cloudfront_distribution.blog_distribution.domain_name
+    zone_id                = aws_cloudfront_distribution.blog_distribution.hosted_zone_id
+    evaluate_target_health = false
   }
 }
 
