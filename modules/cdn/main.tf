@@ -1,8 +1,8 @@
+#Frontend Domain
 resource "aws_acm_certificate" "blog_certificate" {
     domain_name = var.certificate_domain_name
     validation_method = "DNS"
 }
-
 
 # CloudFront
 resource "aws_cloudfront_origin_access_control" "blog_oac" {

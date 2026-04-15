@@ -51,3 +51,8 @@ variable "service_names" {
     type = list(string)
     description = "List of service names"
 }
+
+variable "backend_domain_name" {
+    description = "Backend Domain Name"
+    type = string
+}

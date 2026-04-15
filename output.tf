@@ -7,7 +7,7 @@ output "ProjectRegion" {
 }
 
 output "DomainName" {
-    value = module.acm_cdn.DomainName
+    value = module.cdn.DomainName
 }
 
 output "RDS_Endpoint" {
@@ -24,4 +24,8 @@ output "S3_Website_Endpoint" {
 
 output "Repository_URLs" {
     value = module.ecr.respository_urls
+}
+
+output "certificate_arn" {
+  value = module.acm.certificate_arn
 }

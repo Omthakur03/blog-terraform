@@ -14,8 +14,8 @@ module "s3" {
   env_name     = var.env_name
 }
 
-module "acm_cdn" {
-  source              = "./modules/acm_cdn"
+module "cdn" {
+  source              = "./modules/cdn"
   providers           = { aws = aws.virginia }
   project_name        = "${var.project_name}-${var.env_name}"
   domain_name         = var.domain_name
@@ -57,4 +57,18 @@ module "eks" {
   vpc_id = module.vpc[0].vpc_id
   private_subnet_ids = [module.vpc[0].private_subnet_1_id, module.vpc[0].private_subnet_2_id]
   public_subnet_ids = [module.vpc[0].public_subnet_1_id]
+}
+
+# Fetch existing Route 53 Zone
+data "aws_route53_zone" "main" {
+  name         = "mzsk.fun"
+  private_zone = false
+}
+
+module "acm" {
+  source       = "./modules/acm"
+  project_name = var.project_name
+  env_name     = var.env_name
+  zone_id      = data.aws_route53_zone.main.zone_id
+  backend_domain_name = var.backend_domain_name
 }
