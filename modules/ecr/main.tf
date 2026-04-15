@@ -1,7 +1,7 @@
 resource "aws_ecr_repository" "microservices" {
     for_each = toset(var.service_names)
 
-    name = "${var.project_name}-${var.env_name}-${each.value}-repo"
+    name = "${var.project_name}-repo/${var.env_name}/${each.value}"
     image_tag_mutability = "MUTABLE"
 
     force_delete         = true
@@ -11,7 +11,7 @@ resource "aws_ecr_repository" "microservices" {
     }
 
     tags = {
-        Name = "${var.project_name}-${var.env_name}-${each.value}-repo"
+        Name = "${var.project_name}-repo/${var.env_name}/${each.value}"
     }
 
 }

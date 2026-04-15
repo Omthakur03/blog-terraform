@@ -1,47 +1,40 @@
 resource "aws_eks_cluster" "blog_cluster" {
-    name = "${var.project_name}-${var.env_name}-cluster"
-    role_arn = aws_iam_role.cluster_role.arn
-    version="1.31"
+  name     = "${var.project_name}-${var.env_name}-cluster"
+  role_arn = aws_iam_role.cluster_role.arn
 
-    vpc_config {
-        subnet_ids = var.private_subnet_ids
-        endpoint_private_access = true
-        endpoint_public_access = true #check with chinmay sir
-    }
+  vpc_config {
+    subnet_ids = var.private_subnet_ids
+    # We keep endpoint_public_access true so you can run kubectl from home
+    endpoint_public_access = true 
+  }
 
-    depends_on = [
-        aws_iam_role_policy_attachment.cluster_AmazonEKSClusterPolicy
-    ]
-
-    tags = {
-        Name = "${var.project_name}-${var.env_name}-cluster"
-    }
+  depends_on = [
+    aws_iam_role_policy_attachment.cluster_AmazonEKSClusterPolicy
+  ]
 }
 
-resource "aws_eks_node_group" "nodes" {
-    cluster_name = aws_eks_cluster.blog_cluster.name
-    node_group_name = "${var.project_name}-${var.env_name}-node-group"
-    node_role_arn = aws_iam_role.node_role.arn
-    subnet_ids = var.private_subnet_ids
+resource "aws_eks_fargate_profile" "blog_fargate_profile" {
+  cluster_name           = aws_eks_cluster.blog_cluster.name
+  fargate_profile_name   = "${var.project_name}-${var.env_name}-fargate-profile"
+  pod_execution_role_arn = aws_iam_role.fargate_role.arn
+  
+  # Fargate pods MUST run in private subnets
+  subnet_ids = var.private_subnet_ids
 
-    instance_types = var.is_prod ? ["t3.micro"] : ["t2.micro"]
-    scaling_config {
-        desired_size = var.is_prod ? 1 : 1
-        min_size = var.is_prod ? 1 : 1
-        max_size = var.is_prod ? 2 : 1
+  # This selector picks up your microservices
+  selector {
+    namespace = "blog-app"
+  }
+
+  # This selector allows CoreDNS (system pods) to run on Fargate
+  selector {
+    namespace = "kube-system"
+    labels = {
+      "k8s-app" = "kube-dns"
     }
+  }
 
-    update_config {
-        max_unavailable = 1
-    }
-
-    depends_on = [
-        aws_iam_role_policy_attachment.node_AmazonEKSWorkerNodePolicy,
-        aws_iam_role_policy_attachment.node_AmazonEC2ContainerRegistryReadOnly,
-        aws_iam_role_policy_attachment.node_AmazonEKS_CNI_Policy
-    ]
-
-    tags = {
-        Name = "${var.project_name}-${var.env_name}-node-group"
-    }
+  depends_on = [
+    aws_iam_role_policy_attachment.fargate_pod_execution
+  ]
 }

@@ -69,8 +69,7 @@ resource "aws_cloudfront_distribution" "blog_distribution" {
 resource "aws_route53_record" "cloudfront_alias" {
   zone_id = var.zone_id
   name    = "blog.mzsk.fun"
-  type    = "CNAME"
-  ttl = 60
+  type    = "A"
 
   # Add this line to overwrite the old record automatically
   allow_overwrite = true 

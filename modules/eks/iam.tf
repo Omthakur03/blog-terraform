@@ -1,49 +1,43 @@
-resource "aws_iam_role" "cluster_role" {
-    name = "${var.project_name}-${var.env_name}-eks-cluster-role"
+# --- modules/eks/iam.tf ---
 
-    assume_role_policy = jsonencode ({
-        Version = "2012-10-17"
-        Statement = [{
-            Action = "sts:AssumeRole"
-            Effect = "Allow"
-            Principal = {
-                Service = "eks.amazonaws.com"
-            }
-        }]
-    })
+# 1. EKS Cluster Role (The 'Brain' permissions)
+resource "aws_iam_role" "cluster_role" {
+  name = "${var.project_name}-${var.env_name}-cluster-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "eks.amazonaws.com"
+      }
+    }]
+  })
 }
 
 resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
-    policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-    role = aws_iam_role.cluster_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  role       = aws_iam_role.cluster_role.name
 }
 
-resource "aws_iam_role" "node_role" {
-    name = "${var.project_name}-${var.env_name}-eks-node-role"
+# 2. Fargate Execution Role (The 'Pod' permissions - Keep this from before)
+resource "aws_iam_role" "fargate_role" {
+  name = "${var.project_name}-${var.env_name}-fargate-execution-role"
 
-    assume_role_policy = jsonencode ({
-        Version = "2012-10-17"
-        Statement = [{
-            Action = "sts:AssumeRole"
-            Effect = "Allow"
-            Principal = {
-                Service = "ec2.amazonaws.com"
-            }
-        }]
-    })
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "eks-fargate-pods.amazonaws.com"
+      }
+    }]
+  })
 }
 
-resource "aws_iam_role_policy_attachment" "node_AmazonEKSWorkerNodePolicy" {
-    policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-    role = aws_iam_role.node_role.name
-}
-
-resource "aws_iam_role_policy_attachment" "node_AmazonEC2ContainerRegistryReadOnly" {
-    policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-    role = aws_iam_role.node_role.name
-}
-
-resource "aws_iam_role_policy_attachment" "node_AmazonEKS_CNI_Policy" {
-    policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-    role = aws_iam_role.node_role.name
+resource "aws_iam_role_policy_attachment" "fargate_pod_execution" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy"
+  role       = aws_iam_role.fargate_role.name
 }

@@ -64,6 +64,7 @@ module "eks" {
   vpc_id = module.vpc[0].vpc_id
   private_subnet_ids = [module.vpc[0].private_subnet_1_id, module.vpc[0].private_subnet_2_id]
   public_subnet_ids = [module.vpc[0].public_subnet_1_id]
+  rds_security_group_id = module.rds[0].rds_security_group_id
 }
 
 

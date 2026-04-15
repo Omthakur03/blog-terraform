@@ -77,3 +77,7 @@ output "rds_username" {
 output "rds_password" {
     value = aws_db_instance.blog_rds.password
 }
+
+output "rds_security_group_id" {
+    value = aws_security_group.blog_rds_sg.id
+}
