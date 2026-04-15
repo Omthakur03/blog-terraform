@@ -4,6 +4,7 @@ module "vpc" {
   project_name = "${var.project_name}-${var.env_name}"
   vpc_cidr     = var.vpc_cidr
   public_subnet_cidr_1 = var.public_subnet_cidr_1
+  env_name = var.env_name
   aws_region = var.aws_region
 }
 
@@ -45,6 +46,15 @@ module "ecr" {
   source       = "./modules/ecr"
   project_name = var.project_name
   env_name     = var.env_name
-  
   service_names = var.service_names
+}
+
+module "eks" {
+  source       = "./modules/eks"
+  project_name = var.project_name
+  env_name     = var.env_name
+  is_prod = var.is_prod
+  vpc_id = module.vpc[0].vpc_id
+  private_subnet_ids = [module.vpc[0].private_subnet_1_id, module.vpc[0].private_subnet_2_id]
+  public_subnet_ids = [module.vpc[0].public_subnet_1_id]
 }

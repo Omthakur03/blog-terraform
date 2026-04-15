@@ -25,6 +25,8 @@ resource "aws_subnet" "blog_public_subnet_1" {
     map_public_ip_on_launch = true
     tags = {
         Name = "${var.project_name}_public_subnet_1"
+        "kubernetes.io/role/elb" = "1"
+        "kubernetes.io/cluster/${var.project_name}-${var.env_name}-cluster" = "shared"
     }
 }
 
@@ -34,7 +36,11 @@ resource "aws_subnet" "blog_private_subnet" {
   vpc_id            = aws_vpc.blog_vpc.id
   cidr_block        = "10.0.${count.index+10}.0/24"
   availability_zone = element(["ap-south-1b", "ap-south-1c"], count.index)
-  tags              = { Name = "blog_private_subnet_${count.index}" }
+  tags              = { 
+    Name = "blog_private_subnet_${count.index}" 
+    "kubernetes.io/role/internal-elb" = "1"
+    "kubernetes.io/cluster/${var.project_name}-${var.env_name}-cluster" = "shared"
+    }
 }
 
 # Public Route Table

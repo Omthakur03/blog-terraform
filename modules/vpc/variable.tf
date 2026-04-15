@@ -12,3 +12,7 @@ variable "vpc_cidr" {
 variable "public_subnet_cidr_1" {
     description = "Public Subnet 1 CIDR Block"
 }
+
+variable "env_name" {
+    description = "Environment Name"
+}
