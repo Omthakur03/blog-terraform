@@ -4,6 +4,22 @@ This guide walks you through the complete setup and deployment of the AWS infras
 
 ---
 
+## Architecture Overview
+
+Our infrastructure is designed to be highly available, secure, and scalable. Depending on the environment, it provisions the following components:
+
+- **Frontend Hosting:** S3 bucket for static website hosting distributed globally via CloudFront (CDN).
+- **Network (VPC):** Custom VPC with public and private subnets, ensuring secure isolation of resources (Prod only).
+- **Backend Compute:** Elastic Kubernetes Service (EKS) for container orchestration, running backend microservices.
+- **Database:** Amazon RDS in private subnets for secure, reliable data storage.
+- **Container Registry:** Elastic Container Registry (ECR) for storing Docker images.
+- **Bastion Host:** EC2 instance in a public subnet for secure access to private resources.
+- **DNS & SSL:** Route 53 for DNS routing and ACM for automated SSL/TLS certificate management.
+
+*Note: Some resources (like VPC, RDS, EC2, and EKS) are provisioned conditionally based on the environment (e.g., only in production) to optimize costs.*
+
+---
+
 ## Prerequisites & Setup
 
 ### Step 1 — Install AWS CLI
@@ -88,4 +104,48 @@ Default output format [None]:   json
 
 ---
 
-<!-- Add more steps below as the project grows -->
+## Deployment
+
+This project uses **Terraform Workspaces** to manage different environments (e.g., `staging`, `prod`) with their respective state files. Environment-specific variables are stored in the `environments/` directory.
+
+### Staging Environment
+
+The staging environment provisions a lightweight version of the infrastructure, primarily focusing on frontend components and ECR to save costs.
+
+1. **Create and switch to the staging workspace:**
+   ```bash
+   terraform workspace new staging
+   ```
+   *(If the workspace already exists, use `terraform workspace select staging`)*
+
+2. **Initialize Terraform:**
+   ```bash
+   terraform init
+   ```
+
+3. **Plan and Apply:**
+   ```bash
+   terraform apply -var-file="environments/staging.tfvars"
+   ```
+
+### Production Environment
+
+The production environment provisions the complete infrastructure, including the VPC, EKS cluster, RDS database, and EC2 instances.
+
+1. **Create and switch to the prod workspace:**
+   ```bash
+   terraform workspace new prod
+   ```
+   *(If the workspace already exists, use `terraform workspace select prod`)*
+
+2. **Initialize Terraform (if not already initialized):**
+   ```bash
+   terraform init
+   ```
+
+3. **Plan and Apply:**
+   ```bash
+   terraform apply -var-file="environments/prod.tfvars"
+   ```
+
+

@@ -13,6 +13,10 @@ variable "public_subnet_cidr_1" {
     description = "Public Subnet 1 CIDR Block"
 }
 
+variable "public_subnet_cidr_2" {
+    description = "Public Subnet 2 CIDR Block"
+}
+
 variable "env_name" {
     description = "Environment Name"
 }

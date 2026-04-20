@@ -7,9 +7,10 @@ data "aws_route53_zone" "main" {
 module "vpc" {
   source       = "./modules/vpc"
   count = var.is_prod ? 1 : 0
-  project_name = "${var.project_name}-${var.env_name}"
+  project_name = var.project_name
   vpc_cidr     = var.vpc_cidr
   public_subnet_cidr_1 = var.public_subnet_cidr_1
+  public_subnet_cidr_2 = var.public_subnet_cidr_2
   env_name = var.env_name
   aws_region = var.aws_region
 }

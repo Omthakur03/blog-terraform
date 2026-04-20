@@ -3,7 +3,7 @@ resource "aws_vpc" "blog_vpc" {
     cidr_block = var.vpc_cidr
     enable_dns_hostnames = true
     tags = {
-        Name = "${var.project_name}_vpc"
+        Name = "${var.project_name}-${var.env_name}_vpc"
     }
 }
 
@@ -13,34 +13,47 @@ resource "aws_internet_gateway" "blog_igw" {
     vpc_id = aws_vpc.blog_vpc.id
 
     tags = {
-        Name = "${var.project_name}_igw"
+        Name = "${var.project_name}-${var.env_name}_igw"
     }
 }
 
-# Public Subnet
+# Public Subnet 1
 resource "aws_subnet" "blog_public_subnet_1" {
-    vpc_id = aws_vpc.blog_vpc.id
-    cidr_block = var.public_subnet_cidr_1
-    availability_zone = "ap-south-1a"
-    map_public_ip_on_launch = true
-    tags = {
-        Name = "${var.project_name}_public_subnet_1"
-        "kubernetes.io/role/elb" = "1"
-        "kubernetes.io/cluster/${var.project_name}-${var.env_name}-cluster" = "shared"
-    }
+  vpc_id                  = aws_vpc.blog_vpc.id
+  cidr_block              = var.public_subnet_cidr_1
+  availability_zone       = "ap-south-1a"
+  map_public_ip_on_launch = true
+  tags = {
+    Name                                                                = "${var.project_name}-${var.env_name}_public_subnet_1"
+    "kubernetes.io/role/elb"                                            = "1"
+    "kubernetes.io/cluster/${var.project_name}-${var.env_name}-cluster" = "shared"
+  }
+}
+
+# Public Subnet 2 (REQUIRED for ALB)
+resource "aws_subnet" "blog_public_subnet_2" {
+  vpc_id                  = aws_vpc.blog_vpc.id
+  cidr_block              = var.public_subnet_cidr_2 # Ensure this var is defined (e.g., 10.0.2.0/24)
+  availability_zone       = "ap-south-1b"
+  map_public_ip_on_launch = true
+  tags = {
+    Name                                                                = "${var.project_name}-${var.env_name}_public_subnet_2"
+    "kubernetes.io/role/elb"                                            = "1"
+    "kubernetes.io/cluster/${var.project_name}-${var.env_name}-cluster" = "shared"
+  }
 }
 
 # Private Subnets
 resource "aws_subnet" "blog_private_subnet" {
   count             = 2
   vpc_id            = aws_vpc.blog_vpc.id
-  cidr_block        = "10.0.${count.index+10}.0/24"
-  availability_zone = element(["ap-south-1b", "ap-south-1c"], count.index)
-  tags              = { 
-    Name = "blog_private_subnet_${count.index}" 
-    "kubernetes.io/role/internal-elb" = "1"
+  cidr_block        = "10.0.${count.index + 10}.0/24"
+  availability_zone = element(["ap-south-1a", "ap-south-1b"], count.index) # Matching AZs with Public for better routing
+  tags = {
+    Name                                                                = "${var.project_name}-${var.env_name}_private_subnet_${count.index}"
+    "kubernetes.io/role/internal-elb"                                   = "1"
     "kubernetes.io/cluster/${var.project_name}-${var.env_name}-cluster" = "shared"
-    }
+  }
 }
 
 # Public Route Table
@@ -51,7 +64,7 @@ resource "aws_route_table" "blog_public_route_table" {
         gateway_id = aws_internet_gateway.blog_igw.id
     }
     tags = {
-        Name = "${var.project_name}_public_route_table"
+        Name = "${var.project_name}-${var.env_name}_public_route_table"
     }
 }
 
@@ -61,12 +74,18 @@ resource "aws_route_table_association" "blog_public_route_table_association" {
     route_table_id = aws_route_table.blog_public_route_table.id
 }
 
+# Public Route Table Association
+resource "aws_route_table_association" "blog_public_route_table_association_2" {
+    subnet_id = aws_subnet.blog_public_subnet_2.id
+    route_table_id = aws_route_table.blog_public_route_table.id
+}
+
 # Private Route Table
 resource "aws_route_table" "blog_private_route_table" {
     vpc_id = aws_vpc.blog_vpc.id
     
     tags = {
-        Name = "${var.project_name}_private_route_table"
+        Name = "${var.project_name}-${var.env_name}_private_route_table"
     }
 }
 
@@ -85,7 +104,7 @@ resource "aws_nat_gateway" "nat_gateway" {
     allocation_id = aws_eip.nat_eip.id
     subnet_id = aws_subnet.blog_public_subnet_1.id
     tags = {
-        Name = "${var.project_name}_nat_gateway"
+        Name = "${var.project_name}-${var.env_name}_nat_gateway"
     }
 }
 
